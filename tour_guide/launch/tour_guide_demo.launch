@@ -1,0 +1,86 @@
+<launch>
+
+  <!-- ========================================================= -->
+  <!-- 1) Bring up your EXISTING TurtleBot2 navigation stack     -->
+  <!--    (must include kobuki_node, camera, gmapping, move_base)-->
+  <!-- ========================================================= -->
+
+  <!--
+     Replace the include below with the navigation launch you 
+     already used in Projects 1–3. This is the launch that brings up:
+        - kobuki_node
+        - depth or RGB/IR camera
+        - depthimage_to_laserscan (if applicable)
+        - slam_gmapping OR amcl + map_server
+        - move_base
+  -->
+
+  <include file="$(find YOUR_NAV_STACK_PKG)/launch/YOUR_NAV_LAUNCH_FILE.launch" />
+
+
+
+  <!-- ========================================================= -->
+  <!-- 2) Goal runner (deliberative sequence)                    -->
+  <!-- ========================================================= -->
+
+  <node pkg="tour_guide" type="goal_runner.py" name="goal_runner" output="screen">
+    <param name="frame_id" value="map"/>
+
+    <!-- Fill these with your actual map-frame coordinates -->
+    <param name="forward_goal_xy" value="[BACK_X, BACK_Y]"/>
+    <param name="forward_goal_yaw" value="BACK_YAW"/>
+
+    <param name="return_goal_xy" value="[DOOR_X, DOOR_Y]"/>
+    <param name="return_goal_yaw" value="DOOR_YAW"/>
+  </node>
+
+
+
+  <!-- ========================================================= -->
+  <!-- 3) Help Watchdog (beeps when blocked)                     -->
+  <!-- ========================================================= -->
+
+  <node pkg="tour_guide" type="help_watchdog.py" name="help_watchdog" output="screen">
+    <param name="plan_check_period" value="1.0"/>
+    <param name="no_plan_threshold_sec" value="8.0"/>
+    <param name="global_frame" value="map"/>
+    <param name="base_frame" value="base_link"/>
+
+    <!-- Kobuki sound ID to play when path is blocked.
+         Common choices:
+           4 = error beep
+           3 = button press beep
+    -->
+    <param name="help_beep_value" value="4"/>
+  </node>
+
+
+
+  <!-- ========================================================= -->
+  <!-- 4) IR Checkerboard Detector (beeps at door)               -->
+  <!-- ========================================================= -->
+
+  <node pkg="tour_guide" type="checkerboard_ir.py" name="checkerboard_ir" output="screen">
+    
+    <!-- IR camera topic (change to rgb if needed) -->
+    <param name="image_topic" value="/camera/ir/image_raw"/>
+
+    <!-- Inner corner count for your printed checkerboard -->
+    <param name="pattern_rows" value="7"/>
+    <param name="pattern_cols" value="5"/>
+
+    <param name="global_frame" value="map"/>
+    <param name="base_frame" value="base_link"/>
+
+    <!-- Same center as door goal (or close) -->
+    <param name="door_center_xy" value="[DOOR_X, DOOR_Y]"/>
+    <param name="door_radius_m" value="1.5"/>
+
+    <!-- Cooldown between beeps so it doesn't spam -->
+    <param name="announce_cooldown_sec" value="5.0"/>
+
+    <!-- Sound ID for "please open the door" -->
+    <param name="door_beep_value" value="3"/>
+  </node>
+
+</launch>
