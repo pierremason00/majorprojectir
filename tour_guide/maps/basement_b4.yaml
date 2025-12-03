@@ -1,4 +1,4 @@
-image: /home/maso0076/majorproject_ws/src/tour_guide/maps/basement_b4.pgm
+image: /home/maso0076/major_project_ws/src/tour_guide/maps/basement_b4.pgm
 resolution: 0.050000
 origin: [-13.800000, -15.400000, 0.000000]
 negate: 0

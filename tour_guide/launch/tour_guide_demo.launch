@@ -8,7 +8,7 @@
   <!-- ========================================================= -->
   <!--  3D sensor (depth + IR camera)                            -->
   <!--  This replaces: roslaunch turtlebot_bringup 3dsensor.launch -->
-  <!--  It will start whatever camera the TurtleBot is set up for,
+  <!--  It will start whatever camera the TurtleBot is set up for, -->
   <!--  and should give you /camera/depth/... and /camera/ir/image. -->
   <!-- ========================================================= -->
   <include file="$(find turtlebot_bringup)/launch/3dsensor.launch" />
