@@ -1,15 +1,18 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>tour_guide</name>
-  <version>0.0.0</version>
-  <description>The tour_guide package</description>
+  <version>0.0.1</version>
+  <description>
+    TurtleBot tour guide project:
+    follows a predetermined route on a static map and requests
+    human assistance when blocked or when detecting a checkerboard
+    at a door using the IR camera.
+  </description>
 
-  <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <maintainer email="maso0076@todo.todo">maso0076</maintainer>
-
-  <!-- License -->
   <license>BSD</license>
 
+  <!-- Build system -->
   <buildtool_depend>catkin</buildtool_depend>
 
   <!-- Build dependencies -->
@@ -22,7 +25,9 @@
   <build_depend>sound_play</build_depend>
   <build_depend>std_msgs</build_depend>
   <build_depend>tf</build_depend>
+  <build_depend>kobuki_msgs</build_depend>
   <build_depend>image_transport</build_depend>
+  <build_depend>tf2_ros</build_depend>
 
   <!-- Build export dependencies -->
   <build_export_depend>cv_bridge</build_export_depend>
@@ -34,7 +39,9 @@
   <build_export_depend>sound_play</build_export_depend>
   <build_export_depend>std_msgs</build_export_depend>
   <build_export_depend>tf</build_export_depend>
+  <build_export_depend>kobuki_msgs</build_export_depend>
   <build_export_depend>image_transport</build_export_depend>
+  <build_export_depend>tf2_ros</build_export_depend>
 
   <!-- Runtime dependencies -->
   <exec_depend>cv_bridge</exec_depend>
@@ -46,10 +53,11 @@
   <exec_depend>sound_play</exec_depend>
   <exec_depend>std_msgs</exec_depend>
   <exec_depend>tf</exec_depend>
-  <exec_depend>image_transport</exec_depend>
   <exec_depend>kobuki_msgs</exec_depend>
+  <exec_depend>image_transport</exec_depend>
+  <exec_depend>tf2_ros</exec_depend>
 
-  <!-- Navigation / TurtleBot stack we integrate with at runtime -->
+  <!-- Stack you integrate with at runtime -->
   <exec_depend>turtlebot_bringup</exec_depend>
   <exec_depend>turtlebot_navigation</exec_depend>
   <exec_depend>turtlebot_rviz_launchers</exec_depend>
@@ -59,6 +67,5 @@
   <exec_depend>depthimage_to_laserscan</exec_depend>
 
   <export>
-    <!-- Other tools can request additional information be placed here -->
   </export>
 </package>
