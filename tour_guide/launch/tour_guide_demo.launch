@@ -1,86 +1,149 @@
 <launch>
+  <!-- =========================
+       Arguments / frames
+       ========================= -->
+  <!-- Path to saved map -->
+  <arg name="map_file" default="$(find tour_guide)/maps/basement_b4.yaml"/>
 
-  <!-- ========================================================= -->
-  <!-- 1) Bring up your EXISTING TurtleBot2 navigation stack     -->
-  <!--    (must include kobuki_node, camera, gmapping, move_base)-->
-  <!-- ========================================================= -->
+  <arg name="global_frame" default="map"/>
+  <arg name="base_frame"   default="base_link"/>
 
-  <!--
-     Replace the include below with the navigation launch you 
-     already used in Projects 1–3. This is the launch that brings up:
-        - kobuki_node
-        - depth or RGB/IR camera
-        - depthimage_to_laserscan (if applicable)
-        - slam_gmapping OR amcl + map_server
-        - move_base
-  -->
+  <!-- =========================
+       TurtleBot bringup
+       ========================= -->
+  <!-- Kobuki base, odom, TF, etc. -->
+  <include file="$(find turtlebot_bringup)/launch/minimal.launch"/>
 
-  <include file="$(find YOUR_NAV_STACK_PKG)/launch/YOUR_NAV_LAUNCH_FILE.launch" />
+  <!-- 3D sensor (Kinect / Xtion) -->
+  <include file="$(find turtlebot_bringup)/launch/3dsensor.launch"/>
 
-
-
-  <!-- ========================================================= -->
-  <!-- 2) Goal runner (deliberative sequence)                    -->
-  <!-- ========================================================= -->
-
-  <node pkg="tour_guide" type="goal_runner.py" name="goal_runner" output="screen">
-    <param name="frame_id" value="map"/>
-
-    <!-- Fill these with your actual map-frame coordinates -->
-    <param name="forward_goal_xy" value="[BACK_X, BACK_Y]"/>
-    <param name="forward_goal_yaw" value="BACK_YAW"/>
-
-    <param name="return_goal_xy" value="[DOOR_X, DOOR_Y]"/>
-    <param name="return_goal_yaw" value="DOOR_YAW"/>
+  <!-- =========================
+       Depth -> /scan laser
+       ========================= -->
+  <!-- Convert depth image to a 2D laser scan on /scan -->
+  <node pkg="depthimage_to_laserscan"
+        type="depthimage_to_laserscan"
+        name="depthimage_to_laserscan_node"
+        output="screen">
+    <param name="output_frame_id" value="camera_depth_frame"/>
+    <remap from="image" to="/camera/depth/image_raw"/>
+    <remap from="scan"  to="/scan"/>
   </node>
 
-
-
-  <!-- ========================================================= -->
-  <!-- 3) Help Watchdog (beeps when blocked)                     -->
-  <!-- ========================================================= -->
-
-  <node pkg="tour_guide" type="help_watchdog.py" name="help_watchdog" output="screen">
-    <param name="plan_check_period" value="1.0"/>
-    <param name="no_plan_threshold_sec" value="8.0"/>
-    <param name="global_frame" value="map"/>
-    <param name="base_frame" value="base_link"/>
-
-    <!-- Kobuki sound ID to play when path is blocked.
-         Common choices:
-           4 = error beep
-           3 = button press beep
-    -->
-    <param name="help_beep_value" value="4"/>
+  <!-- =========================
+       Map server + AMCL
+       ========================= -->
+  <!-- Static map of the basement -->
+  <node pkg="map_server"
+        type="map_server"
+        name="map_server"
+        args="$(arg map_file)"
+        output="screen">
+    <param name="frame_id" value="$(arg global_frame)"/>
   </node>
 
+  <!-- AMCL localization -->
+  <node pkg="amcl"
+        type="amcl"
+        name="amcl"
+        output="screen">
+    <param name="use_map_topic"    value="true"/>
+    <param name="base_frame_id"    value="$(arg base_frame)"/>
+    <param name="odom_frame_id"    value="odom"/>
+    <param name="global_frame_id"  value="$(arg global_frame)"/>
 
+    <!-- Your AMCL tuning -->
+    <rosparam file="$(find tour_guide)/config/amcl_params.yaml" command="load"/>
+  </node>
 
-  <!-- ========================================================= -->
-  <!-- 4) IR Checkerboard Detector (beeps at door)               -->
-  <!-- ========================================================= -->
+  <!-- =========================
+       move_base navigation
+       ========================= -->
+  <node pkg="move_base"
+        type="move_base"
+        name="move_base"
+        output="screen">
 
-  <node pkg="tour_guide" type="checkerboard_ir.py" name="checkerboard_ir" output="screen">
-    
-    <!-- IR camera topic (change to rgb if needed) -->
-    <param name="image_topic" value="/camera/ir/image_raw"/>
+    <!-- Planners -->
+    <param name="base_global_planner" value="navfn/NavfnROS"/>
+    <param name="base_local_planner"  value="dwa_local_planner/DWAPlannerROS"/>
 
-    <!-- Inner corner count for your printed checkerboard -->
+    <!-- Shared costmap settings -->
+    <rosparam file="$(find tour_guide)/config/costmap_common_params.yaml"
+              command="load"
+              ns="global_costmap"/>
+    <rosparam file="$(find tour_guide)/config/costmap_common_params.yaml"
+              command="load"
+              ns="local_costmap"/>
+
+    <!-- Global & local specific settings -->
+    <rosparam file="$(find tour_guide)/config/global_costmap_params.yaml"
+              command="load"/>
+    <rosparam file="$(find tour_guide)/config/local_costmap_params.yaml"
+              command="load"/>
+  </node>
+
+  <!-- =========================
+       Your tour behavior nodes
+       ========================= -->
+
+  <!-- 1) Tour: predetermined route (deliberative) -->
+  <node pkg="tour_guide"
+        type="goal_runner.py"
+        name="goal_runner"
+        output="screen">
+    <param name="frame_id" value="$(arg global_frame)"/>
+
+    <!-- TODO: set these to real coordinates on your basement map -->
+    <!-- Forward / “tour” goal -->
+    <rosparam param="forward_goal_xy">[2.0, -1.0]</rosparam>
+    <param    name="forward_goal_yaw" value="0.0"/>
+
+    <!-- Return-to-door goal -->
+    <rosparam param="return_goal_xy">[0.0, 0.0]</rosparam>
+    <param    name="return_goal_yaw" value="3.14"/>
+  </node>
+
+  <!-- 2) IR checkerboard door detection: planned human assist -->
+  <node pkg="tour_guide"
+        type="checkerboard_ir.py"
+        name="checkerboard_ir"
+        output="screen">
+    <!-- IR image topic from your TurtleBot -->
+    <param name="image_topic" value="/camera/ir/image"/>
+
+    <!-- Checkerboard pattern (inner corners) -->
     <param name="pattern_rows" value="7"/>
     <param name="pattern_cols" value="5"/>
 
-    <param name="global_frame" value="map"/>
-    <param name="base_frame" value="base_link"/>
+    <!-- Door region (in map coordinates) -->
+    <!-- TODO: replace with the actual door position on your map -->
+    <rosparam param="door_center_xy">[0.0, 0.0]</rosparam>
+    <param    name="door_radius_m" value="1.5"/>
 
-    <!-- Same center as door goal (or close) -->
-    <param name="door_center_xy" value="[DOOR_X, DOOR_Y]"/>
-    <param name="door_radius_m" value="1.5"/>
+    <param name="global_frame" value="$(arg global_frame)"/>
+    <param name="base_frame"   value="$(arg base_frame)"/>
 
-    <!-- Cooldown between beeps so it doesn't spam -->
+    <!-- Beep ID when checkerboard is detected at the door -->
+    <param name="door_beep_value"       value="3"/>
     <param name="announce_cooldown_sec" value="5.0"/>
+  </node>
 
-    <!-- Sound ID for "please open the door" -->
-    <param name="door_beep_value" value="3"/>
+  <!-- 3) Help watchdog: unplanned human assist when stuck -->
+  <node pkg="tour_guide"
+        type="help_watchdog.py"
+        name="help_watchdog"
+        output="screen">
+    <!-- How often to check for a valid plan -->
+    <param name="plan_check_period"     value="1.0"/>
+    <!-- How long w/o a plan before asking for help -->
+    <param name="no_plan_threshold_sec" value="8.0"/>
+
+    <param name="global_frame" value="$(arg global_frame)"/>
+    <param name="base_frame"   value="$(arg base_frame)"/>
+
+    <!-- Beep ID when stuck -->
+    <param name="help_beep_value" value="4"/>
   </node>
 
 </launch>
