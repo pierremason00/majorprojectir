@@ -99,8 +99,8 @@
 
     <!-- Return leg: back to the door, facing the door -->
     <!-- From end /amcl_pose: x=0.1127, y=-0.2085, yaw≈2.96 -->
-    <rosparam param="return_goal_xy">[-0.852, 0.074]</rosparam>
-    <param    name="return_goal_yaw" value="2.77" />
+    <rosparam param="return_goal_xy">[-0.5557, -0.099357]</rosparam>
+    <param    name="return_goal_yaw" value="2.81" />
   </node>
 
   <!-- 2) Checkerboard IR detector: asks for help at the door -->
@@ -117,7 +117,7 @@
     <param name="base_frame"   value="base_link" />
 
     <!-- Door location in map coordinates (from end-of-tour pose) -->
-    <rosparam param="door_center_xy">[-0.852, 0.074]</rosparam>
+    <rosparam param="door_center_xy">[-0.5557, -0.099357]</rosparam>
     <param    name="door_radius_m" value="1.5" />
 
     <param name="door_beep_value" value="3" />
