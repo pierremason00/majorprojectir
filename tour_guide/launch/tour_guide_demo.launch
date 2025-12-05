@@ -1,15 +1,14 @@
 <launch>
   <!-- ========================================================= -->
   <!--  Base TurtleBot bringup (Kobuki, diagnostics, cmd_vel_mux) -->
-  <!--  This replaces running: roslaunch turtlebot_bringup minimal.launch -->
+  <!--  Equivalent to: roslaunch turtlebot_bringup minimal.launch -->
   <!-- ========================================================= -->
   <include file="$(find turtlebot_bringup)/launch/minimal.launch" />
 
   <!-- ========================================================= -->
   <!--  3D sensor (depth + IR camera)                            -->
-  <!--  This replaces: roslaunch turtlebot_bringup 3dsensor.launch -->
-  <!--  It will start whatever camera the TurtleBot is set up for, -->
-  <!--  and should give you /camera/depth/... and /camera/ir/image. -->
+  <!--  Equivalent to: roslaunch turtlebot_bringup 3dsensor.launch -->
+  <!--  This should give /camera/depth/image_raw and /camera/ir/image -->
   <!-- ========================================================= -->
   <include file="$(find turtlebot_bringup)/launch/3dsensor.launch" />
 
@@ -62,10 +61,10 @@
         name="move_base"
         output="screen">
 
-    <!-- *** Critical: send nav velocities where Kobuki actually listens *** -->
+    <!-- Send nav velocities where the Kobuki actually listens -->
     <remap from="cmd_vel" to="/mobile_base/commands/velocity" />
 
-    <!-- Costmap parameters (you already created these YAMLs) -->
+    <!-- Costmap parameters -->
     <rosparam file="$(find tour_guide)/config/costmap_common_params.yaml"
               command="load"
               ns="global_costmap" />
@@ -86,19 +85,22 @@
   <!--  Tour guide logic                                         -->
   <!-- ========================================================= -->
 
-  <!-- 1) Goal runner: runs the tour (forward + return) -->
+  <!-- 1) Goal runner: door -> back of room -> door -->
   <node pkg="tour_guide"
         type="goal_runner.py"
         name="goal_runner"
         output="screen">
     <param name="frame_id" value="map" />
 
-    <!-- Replace with real coordinates once you read /amcl_pose -->
-    <rosparam param="forward_goal_xy">[2.0, -1.0]</rosparam>
-    <param    name="forward_goal_yaw" value="0.0" />
+    <!-- Forward leg: from door into the back of the room -->
+    <!-- From middle /amcl_pose: x=11.4749, y=-3.0803, yaw≈2.62 -->
+    <rosparam param="forward_goal_xy">[11.475, -3.080]</rosparam>
+    <param    name="forward_goal_yaw" value="2.62" />
 
-    <rosparam param="return_goal_xy">[0.0, 0.0]</rosparam>
-    <param    name="return_goal_yaw" value="3.14" />
+    <!-- Return leg: back to the door, facing the door -->
+    <!-- From end /amcl_pose: x=0.1127, y=-0.2085, yaw≈2.96 -->
+    <rosparam param="return_goal_xy">[0.113, -0.208]</rosparam>
+    <param    name="return_goal_yaw" value="2.96" />
   </node>
 
   <!-- 2) Checkerboard IR detector: asks for help at the door -->
@@ -114,11 +116,12 @@
     <param name="global_frame" value="map" />
     <param name="base_frame"   value="base_link" />
 
-    <!-- Set this later from /amcl_pose when the robot is parked at the door -->
-    <rosparam param="door_center_xy">[0.0, 0.0]</rosparam>
-    <param    name="door_radius_m"      value="1.5" />
-    <param    name="door_beep_value"    value="3" />
-    <param    name="announce_cooldown_sec" value="5.0" />
+    <!-- Door location in map coordinates (from end-of-tour pose) -->
+    <rosparam param="door_center_xy">[0.113, -0.208]</rosparam>
+    <param    name="door_radius_m" value="1.5" />
+
+    <param name="door_beep_value" value="3" />
+    <param name="announce_cooldown_sec" value="5.0" />
   </node>
 
   <!-- 3) Help watchdog: asks for help when the robot is stuck -->
