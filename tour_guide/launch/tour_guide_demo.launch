@@ -101,6 +101,7 @@
     <!-- From end /amcl_pose: x=0.1127, y=-0.2085, yaw≈2.96 -->
     <rosparam param="return_goal_xy">[-0.5557, -0.099357]</rosparam>
     <param    name="return_goal_yaw" value="2.81" />
+    <param name="xy_goal_tolerance" value="0.45" />
   </node>
 
   <!-- 2) Checkerboard IR detector: asks for help at the door -->
