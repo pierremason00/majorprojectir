@@ -127,7 +127,7 @@
     <param name="announce_cooldown_sec" value="5.0" />
   </node>
 
-  <!-- 3) Help watchdog: asks for help when the robot is stuck -->
+   <!-- 3) Help watchdog: asks for help when the robot is stuck -->
   <node pkg="tour_guide"
         type="help_watchdog.py"
         name="help_watchdog"
@@ -135,13 +135,15 @@
     <param name="global_frame" value="map" />
     <param name="base_frame"   value="base_link" />
 
-    <param name="help_beep_value"       value="4" />
-    <param name="no_plan_threshold_sec" value="8.0" />
-    <param name="plan_check_period"     value="1.0" />
-    <!-- Optional: you can also tune these if you want -->
-    <!-- <param name="stuck_timeout_sec" value="5.0" /> -->
-    <!-- <param name="min_move_dist_m" value="0.03" /> -->
-    <!-- <param name="pause_after_help_sec" value="10.0" /> -->
+    <!-- Error tone -->
+    <param name="help_beep_value" value="4" />
+
+    <!-- How "stuck" is defined -->
+    <param name="stuck_timeout_sec"      value="8.0" />   <!-- seconds with no progress -->
+    <param name="min_progress_m"         value="0.10" />  <!-- need at least 10 cm progress -->
+    <param name="goal_reached_radius_m"  value="0.35" />  <!-- treat within 35 cm as at goal -->
+    <param name="pause_after_help_sec"   value="10.0" />  <!-- wait 10s after beeping -->
   </node>
+
 
 </launch>
