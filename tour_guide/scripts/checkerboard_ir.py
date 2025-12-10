@@ -28,8 +28,8 @@ class CheckerboardIR(object):
         self.global_frame = rospy.get_param("~global_frame", "map")
         self.base_frame = rospy.get_param("~base_frame", "base_link")
 
-        # Beep value for "please open the door" (default 3 = button press)
-        self.door_beep_value = int(rospy.get_param("~door_beep_value", 3))
+        # Beep value for "please open the door" (default 4 = error sound)
+        self.door_beep_value = int(rospy.get_param("~door_beep_value", 4))
         self.announce_cooldown = rospy.Duration(
             rospy.get_param("~announce_cooldown_sec", 5.0)
         )
