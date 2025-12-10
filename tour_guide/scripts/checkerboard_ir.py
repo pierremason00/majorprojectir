@@ -69,9 +69,11 @@ class CheckerboardIR(object):
             dist = (dx * dx + dy * dy) ** 0.5
             return dist <= self.door_radius
         except Exception:
+            # Fall back on the Boolean flag if TF fails
             return self.at_door_flag
 
     def _should_check(self):
+        # Only actively search for the checkerboard when near the door
         return self._near_door_tf() or self.at_door_flag
 
     def _beep_door(self):
@@ -83,7 +85,9 @@ class CheckerboardIR(object):
 
         msg = Sound()
         msg.value = self.door_beep_value
-        rospy.loginfo("checkerboard_ir: publishing door beep value=%d", msg.value)
+        rospy.loginfo(
+            "checkerboard_ir: publishing door beep value=%d", msg.value
+        )
         self.sound_pub.publish(msg)
 
     def _image_cb(self, msg):
