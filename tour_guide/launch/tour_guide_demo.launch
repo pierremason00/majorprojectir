@@ -123,7 +123,7 @@
     <rosparam param="door_center_xy">[-0.5557, -0.099357]</rosparam>
     <param    name="door_radius_m" value="1.5" />
 
-    <param name="door_beep_value" value="3" />
+    <param name="door_beep_value" value="4" />
     <param name="announce_cooldown_sec" value="5.0" />
   </node>
 
