@@ -1,14 +1,11 @@
 <launch>
   <!-- ========================================================= -->
   <!--  Base TurtleBot bringup (Kobuki, diagnostics, cmd_vel_mux) -->
-  <!--  Equivalent to: roslaunch turtlebot_bringup minimal.launch -->
   <!-- ========================================================= -->
   <include file="$(find turtlebot_bringup)/launch/minimal.launch" />
 
   <!-- ========================================================= -->
   <!--  3D sensor (depth + IR camera)                            -->
-  <!--  Equivalent to: roslaunch turtlebot_bringup 3dsensor.launch -->
-  <!--  This should give /camera/depth/image_raw and /camera/ir/image -->
   <!-- ========================================================= -->
   <include file="$(find turtlebot_bringup)/launch/3dsensor.launch" />
 
@@ -77,8 +74,13 @@
     <rosparam file="$(find tour_guide)/config/local_costmap_params.yaml"
               command="load" />
 
+    <!-- Global + local planners -->
     <param name="base_global_planner" value="navfn/NavfnROS" />
     <param name="base_local_planner"  value="dwa_local_planner/DWAPlannerROS" />
+
+    <!-- 🔽 NEW: DWA planner parameters including goal radius tolerance -->
+    <rosparam file="$(find tour_guide)/config/dwa_local_planner_params.yaml"
+              command="load" />
   </node>
 
   <!-- ========================================================= -->
@@ -101,7 +103,7 @@
     <!-- From end /amcl_pose: x=0.1127, y=-0.2085, yaw≈2.96 -->
     <rosparam param="return_goal_xy">[-0.5557, -0.099357]</rosparam>
     <param    name="return_goal_yaw" value="2.81" />
-    <param name="xy_goal_tolerance" value="0.45" />
+    <!-- NOTE: we removed xy_goal_tolerance here; handled by DWA now -->
   </node>
 
   <!-- 2) Checkerboard IR detector: asks for help at the door -->
@@ -136,6 +138,10 @@
     <param name="help_beep_value"       value="4" />
     <param name="no_plan_threshold_sec" value="8.0" />
     <param name="plan_check_period"     value="1.0" />
+    <!-- Optional: you can also tune these if you want -->
+    <!-- <param name="stuck_timeout_sec" value="5.0" /> -->
+    <!-- <param name="min_move_dist_m" value="0.03" /> -->
+    <!-- <param name="pause_after_help_sec" value="10.0" /> -->
   </node>
 
 </launch>
