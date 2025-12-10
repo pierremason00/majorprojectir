@@ -1,0 +1,31 @@
+DWAPlannerROS:
+  # ================================
+  # GOAL TOLERANCE (the “radius”)
+  # ================================
+  xy_goal_tolerance: 0.35        # Robot only needs to get within 35 cm
+  yaw_goal_tolerance: 0.35       # ~20 degrees tolerance
+  latch_xy_goal_tolerance: true  # Once inside radius, don't back out
+
+  # ================================
+  # Motion limits (defaults work fine)
+  # ================================
+  max_vel_x: 0.5
+  min_vel_x: 0.0
+  max_vel_theta: 1.5
+  min_vel_theta: -1.5
+  acc_lim_x: 1.0
+  acc_lim_theta: 2.0
+
+  # ================================
+  # Forward simulation
+  # ================================
+  sim_time: 1.2
+  vx_samples: 20
+  vtheta_samples: 20
+
+  # ================================
+  # Scoring (default good)
+  # ================================
+  path_distance_bias: 32.0
+  goal_distance_bias: 24.0
+  occdist_scale: 0.02
