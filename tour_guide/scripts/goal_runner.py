@@ -14,6 +14,7 @@ def make_goal(x, y, yaw, frame_id):
     goal = MoveBaseGoal()
     goal.target_pose = PoseStamped()
     goal.target_pose.header.frame_id = frame_id
+    goal.target_pose.header.stamp = rospy.Time.now()
     goal.target_pose.pose.position.x = x
     goal.target_pose.pose.position.y = y
     # yaw -> quaternion (z, w) in 2D
@@ -43,7 +44,10 @@ class GoalRunner(object):
         self.client.wait_for_server()
         rospy.loginfo("goal_runner: connected to move_base")
 
-        self.at_door_pub = rospy.Publisher("at_door_region", Bool, queue_size=1, latch=True)
+        # Flag for the door IR node
+        self.at_door_pub = rospy.Publisher(
+            "at_door_region", Bool, queue_size=1, latch=True
+        )
 
         rospy.sleep(1.0)
         self.run_sequence()
@@ -52,13 +56,17 @@ class GoalRunner(object):
         x, y, yaw = goal_tuple
         goal = make_goal(x, y, yaw, self.frame_id)
 
-        rospy.loginfo("goal_runner: sending %s goal (%.2f, %.2f, yaw=%.2f)",
-                      label, x, y, yaw)
+        rospy.loginfo(
+            "goal_runner: sending %s goal (%.2f, %.2f, yaw=%.2f)",
+            label, x, y, yaw
+        )
 
         self.client.send_goal(goal)
         self.client.wait_for_result()
         state = self.client.get_state()
-        rospy.loginfo("goal_runner: %s goal finished with state %d", label, state)
+        rospy.loginfo(
+            "goal_runner: %s goal finished with state %d", label, state
+        )
         return state
 
     def run_sequence(self):
@@ -70,7 +78,7 @@ class GoalRunner(object):
         # 2) Return to door
         self.send_and_wait(self.return_goal, "RETURN")
 
-        # Mark that we're at/near door
+        # Mark that we're at/near door so checkerboard node starts looking
         rospy.loginfo("goal_runner: at door region, publishing flag")
         self.at_door_pub.publish(Bool(data=True))
 
