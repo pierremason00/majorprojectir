@@ -10,140 +10,21 @@
   <include file="$(find turtlebot_bringup)/launch/3dsensor.launch" />
 
   <!-- ========================================================= -->
-  <!--  Depth image -> LaserScan on /scan for navigation         -->
+  <!--  Checkerboard IR detector: ALWAYS searching for pattern   -->
   <!-- ========================================================= -->
-  <node pkg="depthimage_to_laserscan"
-        type="depthimage_to_laserscan"
-        name="depthimage_to_laserscan_node"
-        output="screen">
-    <!-- Depth topic from the 3D sensor -->
-    <remap from="image" to="/camera/depth/image_raw" />
-    <!-- LaserScan output for AMCL + move_base -->
-    <remap from="scan"  to="/scan" />
-    <param name="output_frame_id" value="camera_depth_frame" />
-    <param name="range_min"       value="0.45" />
-    <param name="scan_height"     value="10" />
-  </node>
-
-  <!-- ========================================================= -->
-  <!--  Map + Localization                                       -->
-  <!-- ========================================================= -->
-
-  <!-- Static map of B4 basement -->
-  <node pkg="map_server"
-        type="map_server"
-        name="map_server"
-        args="$(find tour_guide)/maps/basement_b4.yaml"
-        output="screen">
-    <param name="frame_id" value="map" />
-  </node>
-
-  <!-- AMCL localization (uses /scan + /tf + map) -->
-  <node pkg="amcl"
-        type="amcl"
-        name="amcl"
-        output="screen">
-    <param name="use_map_topic"   value="true" />
-    <param name="odom_frame_id"   value="odom" />
-    <param name="base_frame_id"   value="base_link" />
-    <param name="global_frame_id" value="map" />
-  </node>
-
-  <!-- ========================================================= -->
-  <!--  Navigation: move_base + costmaps                         -->
-  <!-- ========================================================= -->
-
-  <node pkg="move_base"
-        type="move_base"
-        name="move_base"
-        output="screen">
-
-    <!-- Send nav velocities where the Kobuki actually listens -->
-    <remap from="cmd_vel" to="/mobile_base/commands/velocity" />
-
-    <!-- Costmap parameters -->
-    <rosparam file="$(find tour_guide)/config/costmap_common_params.yaml"
-              command="load"
-              ns="global_costmap" />
-    <rosparam file="$(find tour_guide)/config/costmap_common_params.yaml"
-              command="load"
-              ns="local_costmap" />
-
-    <rosparam file="$(find tour_guide)/config/global_costmap_params.yaml"
-              command="load" />
-    <rosparam file="$(find tour_guide)/config/local_costmap_params.yaml"
-              command="load" />
-
-    <!-- Global + local planners -->
-    <param name="base_global_planner" value="navfn/NavfnROS" />
-    <param name="base_local_planner"  value="dwa_local_planner/DWAPlannerROS" />
-
-    <!-- 🔽 NEW: DWA planner parameters including goal radius tolerance -->
-    <rosparam file="$(find tour_guide)/config/dwa_local_planner_params.yaml"
-              command="load" />
-  </node>
-
-  <!-- ========================================================= -->
-  <!--  Tour guide logic                                         -->
-  <!-- ========================================================= -->
-
-  <!-- 1) Goal runner: door -> back of room -> door -->
-  <node pkg="tour_guide"
-        type="goal_runner.py"
-        name="goal_runner"
-        output="screen">
-    <param name="frame_id" value="map" />
-
-    <!-- Forward leg: from door into the back of the room -->
-    <!-- From middle /amcl_pose: x=11.4749, y=-3.0803, yaw≈2.62 -->
-    <rosparam param="forward_goal_xy">[11.475, -3.080]</rosparam>
-    <param    name="forward_goal_yaw" value="2.62" />
-
-    <!-- Return leg: back to the door, facing the door -->
-    <!-- From end /amcl_pose: x=0.1127, y=-0.2085, yaw≈2.96 -->
-    <rosparam param="return_goal_xy">[-0.5557, -0.099357]</rosparam>
-    <param    name="return_goal_yaw" value="2.81" />
-    <!-- NOTE: we removed xy_goal_tolerance here; handled by DWA now -->
-  </node>
-
-  <!-- 2) Checkerboard IR detector: asks for help at the door -->
   <node pkg="tour_guide"
         type="checkerboard_ir.py"
         name="checkerboard_ir"
         output="screen">
-    <!-- IR image from the 3D sensor stack -->
+    <!-- Use the IR image topic you confirmed -->
     <param name="image_topic" value="/camera/ir/image" />
+
+    <!-- INNER corners; adjust to match your printed board -->
     <param name="pattern_rows" value="7" />
     <param name="pattern_cols" value="5" />
 
-    <param name="global_frame" value="map" />
-    <param name="base_frame"   value="base_link" />
-
-    <!-- Door location in map coordinates (from end-of-tour pose) -->
-    <rosparam param="door_center_xy">[-0.5557, -0.099357]</rosparam>
-    <param    name="door_radius_m" value="1.5" />
-
+    <!-- Error sound 4 -->
     <param name="door_beep_value" value="4" />
     <param name="announce_cooldown_sec" value="5.0" />
   </node>
-
-   <!-- 3) Help watchdog: asks for help when the robot is stuck -->
-  <node pkg="tour_guide"
-        type="help_watchdog.py"
-        name="help_watchdog"
-        output="screen">
-    <param name="global_frame" value="map" />
-    <param name="base_frame"   value="base_link" />
-
-    <!-- Error tone -->
-    <param name="help_beep_value" value="4" />
-
-    <!-- How "stuck" is defined -->
-    <param name="stuck_timeout_sec"      value="8.0" />   <!-- seconds with no progress -->
-    <param name="min_progress_m"         value="0.10" />  <!-- need at least 10 cm progress -->
-    <param name="goal_reached_radius_m"  value="0.35" />  <!-- treat within 35 cm as at goal -->
-    <param name="pause_after_help_sec"   value="10.0" />  <!-- wait 10s after beeping -->
-  </node>
-
-
 </launch>
