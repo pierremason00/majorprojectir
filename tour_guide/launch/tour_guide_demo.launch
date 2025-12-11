@@ -1,30 +1,14 @@
 <launch>
-  <!-- ========================================================= -->
-  <!--  Base TurtleBot bringup (Kobuki, diagnostics, cmd_vel_mux) -->
-  <!-- ========================================================= -->
   <include file="$(find turtlebot_bringup)/launch/minimal.launch" />
-
-  <!-- ========================================================= -->
-  <!--  3D sensor (depth + IR camera)                            -->
-  <!-- ========================================================= -->
   <include file="$(find turtlebot_bringup)/launch/3dsensor.launch" />
 
-  <!-- ========================================================= -->
-  <!--  Checkerboard IR detector: ALWAYS searching for pattern   -->
-  <!-- ========================================================= -->
   <node pkg="tour_guide"
         type="checkerboard_ir.py"
         name="checkerboard_ir"
         output="screen">
-    <!-- Use the IR image topic you confirmed -->
     <param name="image_topic" value="/camera/ir/image" />
-
-    <!-- INNER corners; adjust to match your printed board -->
     <param name="pattern_rows" value="7" />
     <param name="pattern_cols" value="5" />
-
-    <!-- Error sound 4 -->
-    <param name="door_beep_value" value="4" />
-    <param name="announce_cooldown_sec" value="5.0" />
+    <param name="beep_value" value="4" />
   </node>
 </launch>
